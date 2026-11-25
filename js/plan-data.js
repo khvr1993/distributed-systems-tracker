@@ -14,6 +14,15 @@ export const DAY_LABELS = {
 
 export const DAY_OFFSET = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
 
+export const DAILY_MINUTES = 60;
+
+export const RITUAL = [
+  { label: 'Learn', minutes: 25 },
+  { label: 'Build', minutes: 20 },
+  { label: 'Quiz', minutes: 10 },
+  { label: 'Note', minutes: 5 },
+];
+
 export const TYPES = {
   learn: { label: 'Learn' },
   lab: { label: 'Lab' },
@@ -395,8 +404,8 @@ export function getItems() {
 
     if (!days.sun && week.week < 26) {
       days.sun = week.week >= 21 && week.week <= 24
-        ? 'Teach-back (45 min): demo your capstone and explain its design tradeoffs.'
-        : `Teach-back (45 min): explain “${week.title}” like you are teaching a new grad.`;
+        ? `Teach-back (${DAILY_MINUTES} min): demo your capstone and explain its design tradeoffs.`
+        : `Teach-back (${DAILY_MINUTES} min): explain “${week.title}” like you are teaching a new grad.`;
     }
 
     for (const day of DAY_ORDER) {

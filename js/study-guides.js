@@ -1,4 +1,5 @@
 const KPS = 'https://github.com/karanpratapsingh/system-design';
+export const SOCRATIC_SKILL_URL = 'https://github.com/janestreet/agent_skills/tree/master/socratic-tutor';
 
 // Each entry: [title, url, summary]
 export const SESSION_REFS = {
@@ -842,22 +843,23 @@ export function buildStudyGuide(item) {
     ? entry[2]
     : `Explain ${item.weekTitle} from first principles: core mechanism, key failure mode, and when to choose alternatives.`;
 
-  let modeGoal = 'Explain core mechanics, edge cases, and architectural tradeoffs before summarizing in 3 bullets.';
+  let modeGoal = 'Diagnose my baseline first, ask one Socratic question at a time, and cover core mechanics, edge cases, and architectural tradeoffs before I summarize.';
   if (item.type === 'lab' || item.type === 'build') {
-    modeGoal = 'Guide me to design the minimal architecture, data structures, and failure test cases first—do not write the solution code for me unless I ask after answering.';
+    modeGoal = 'Guide me Socratic-style to design the minimal architecture, data structures, and failure test cases first—do not write the solution code unless I ask after answering.';
   } else if (item.type === 'failure') {
-    modeGoal = 'Simulate this incident step by step: give me initial symptoms and make me diagnose root cause, blast radius, and safe mitigation one question at a time.';
+    modeGoal = 'Walk me through this incident step by step: give me initial symptoms and make me diagnose root cause, blast radius, and safe mitigation one question at a time.';
   } else if (item.type === 'case' || item.type === 'capstone') {
-    modeGoal = 'Run this as a Socratic system design interview (requirements -> capacity math -> data model & APIs -> high-level design -> bottlenecks), challenging each choice one question at a time.';
+    modeGoal = 'Coach me through this as a Socratic system design interview (requirements -> capacity math -> data model & APIs -> high-level design -> bottlenecks), probing each choice one question at a time.';
   } else if (item.type === 'review') {
     modeGoal = 'Let me teach this topic back to you from scratch, then probe every hand-wavy claim or missing edge case with targeted follow-up questions.';
   }
 
   const prompt = [
-    `Act as a Socratic distributed systems tutor (do not lecture).`,
-    `Topic: Week ${item.week} (${item.weekTitle}) — ${item.text}`,
+    `Use the socratic-tutor skill to teach me Week ${item.week} (${item.weekTitle}): ${item.text}.`,
+    `If your agent supports skills, invoke /socratic-tutor first. If the skill is unavailable, act as a Socratic tutor: ask one question at a time and wait for my answer.`,
     `Core focus: ${refSummary}`,
-    `Rules: Ask ONLY ONE sharp question at a time and wait for my answer. Start with 1 intuitive diagnostic question to check what I already know. If I get stuck, give a small hint or counterexample instead of the full answer. ${modeGoal}`,
+    `Reference: ${refUrl}`,
+    `Guidance: ${modeGoal}`,
   ].join('\n');
 
   return { refTitle, refUrl, refSummary, prompt };

@@ -1,7 +1,6 @@
-const DURATION_BY_TYPE = {
-  build: 'PT180M',
-  review: 'PT45M',
-};
+import { DAILY_MINUTES } from './plan-data.js';
+
+const DURATION = `PT${DAILY_MINUTES}M`;
 
 const TYPE_LABEL = {
   learn: 'Learn',
@@ -80,7 +79,7 @@ export function generateICS(entries, settings) {
       item.text,
       item.refSummary ? `Takeaway: ${item.refSummary}` : '',
       item.refUrl ? `Reference: ${item.refTitle} — ${item.refUrl}` : '',
-      `Estimated time: ${item.type === 'build' ? '2–3 hours' : item.type === 'review' ? '45 minutes' : '90 minutes'}`,
+      `Estimated time: ${DAILY_MINUTES} minutes`,
       settings.appUrl ? `Open tracker: ${settings.appUrl}` : '',
     ].filter(Boolean).join('\n');
 
@@ -88,7 +87,7 @@ export function generateICS(entries, settings) {
     lines.push(`UID:${item.id}@ds-tracker`);
     lines.push(`DTSTAMP:${stamp}`);
     lines.push(`DTSTART:${icsDateTime(date, time)}`);
-    lines.push(`DURATION:${DURATION_BY_TYPE[item.type] || 'PT90M'}`);
+    lines.push(`DURATION:${DURATION}`);
     lines.push(foldLine(`SUMMARY:${escapeICS(title)}`));
     lines.push(foldLine(`DESCRIPTION:${escapeICS(description)}`));
     lines.push('BEGIN:VALARM');

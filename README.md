@@ -4,12 +4,14 @@ A mobile-first tracker for a 26-week distributed systems study plan (180 session
 
 ## What's inside
 
-- **Today** — the day's sessions, overdue catch-up list, current streak, overall progress ring, plus an expandable study reference link and 1-tap Socratic AI prompt on every session.
+- **Today** — the day's sessions, overdue catch-up list, current streak, overall progress ring, plus an expandable study reference link, 1-tap Socratic AI prompt, note, and 1–5 confidence rating on every session.
 - **Plan** — all 26 weeks grouped by phase; check off any session early or late.
 - **Progress** — completion %, current/best streak, 26×7 heatmap, per-phase breakdown.
 - **Schedule** — configurable start date (defaults to next Monday) plus weekday/weekend reminder times. Moving the start date never loses checkmarks.
 - **Reminders** — export a calendar file with native alerts, or enable the optional ntfy push workflow.
-- **Backup** — export/import progress as JSON.
+- **Learning log** — notes and confidence ratings feed a weak-topics list for the Sunday teach-back.
+- **Backup** — export progress as JSON (notes and confidence included), or import a backup to merge/update or replace progress; replace and reset keep a snapshot you can undo.
+- **Socratic AI Tutor** — each session includes a `socratic-tutor` prompt; install the skill from [janestreet/agent_skills](https://github.com/janestreet/agent_skills/tree/master/socratic-tutor). In Command Code, invoke `/socratic-tutor` and paste the session prompt after it; the prompt also tells other agents how to fall back if the skill is unavailable.
 
 The plan covers: networking (IP/OSI/DNS/TCP/UDP, REST/GraphQL/gRPC, WebSockets/SSE, proxies, load balancing), time and ordering, CAP/PACELC/availability/scalability, consensus (Paxos/Raft), storage (block/file/object, B-Tree/LSM), replication, partitioning/sharding/federation, SQL/NoSQL/normalization/transactions, queues/pub-sub/Kafka/EDA/event sourcing/CQRS, scheduling, coordination, failure patterns, idempotency, performance/caching, rate limiting/API gateway, observability, containers/deployment, disaster recovery, security (OAuth/OIDC/SSO/TLS/mTLS), geohashing/quadtrees, plus capstones and case studies (URL Shortener, Distributed KV + Queue, Notification System, WhatsApp, Twitter, Netflix, and Uber).
 
@@ -36,8 +38,9 @@ No build or CI is required for hosting. Everything is static.
 
 - Open the app and check off today's session from **Today**, or browse **Plan** to work ahead.
 - Progress saves automatically in `localStorage` on that device.
+- Open a session's study guide to add a one-line note and rate confidence 1–5; low-confidence topics surface in the weak-topics list before the Sunday teach-back.
 - Use **Progress → Backup** to move data between phones/browsers.
-- Each session includes the daily ritual: learn 30 min, build 30 min, quiz 20 min, note 10 min. Friday adds a postmortem; Sunday is the 45-minute teach-back.
+- Each session includes the 60-minute daily ritual: learn 25 min, build 20 min, quiz 10 min, note 5 min. Friday adds a postmortem; Sunday is the 60-minute teach-back.
 
 ## Reminders
 
@@ -75,7 +78,7 @@ Limitations: this sends the day's scheduled sessions; it can't know which items 
 npm test
 ```
 
-Validates the session data (counts, unique IDs, phase coverage, date math) and the `.ics` generator.
+Validates the session data (counts, unique IDs, phase coverage, date math, 60-minute budget) and the `.ics` generator. CI runs the same check on every push and pull request via `.github/workflows/test.yml`.
 
 ## Project structure
 
@@ -92,6 +95,8 @@ manifest.webmanifest     installable app metadata
 scripts/reminder.mjs      ntfy push script
 scripts/self-check.mjs    data/calendar self-check
 .github/workflows/reminder.yml
+.github/workflows/test.yml   CI self-check
+LICENSE                   MIT
 ```
 
 If you edit the plan or anything cached, bump `CACHE_NAME` in `sw.js` so installed phones pick up the new version.

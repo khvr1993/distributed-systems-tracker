@@ -3,9 +3,23 @@ import {
   WEEKS,
   TYPES,
   DAY_ORDER,
+  DAILY_MINUTES,
+  RITUAL,
   getItems,
 } from './plan-data.js';
-import { loadSettings, saveSettings, loadProgress, saveProgress } from './store.js';
+import { SOCRATIC_SKILL_URL } from './study-guides.js';
+import {
+  loadSettings,
+  saveSettings,
+  loadProgress,
+  saveProgress,
+  loadLastBackup,
+  loadSnapshot,
+  markBackupExported,
+  saveSnapshot,
+  sanitizeProgress,
+  NOTE_MAX_LENGTH,
+} from './store.js';
 import {
   addDays,
   daysBetween,
@@ -29,13 +43,13 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const DURATION_TEXT = {
-  learn: '~90 min session',
-  lab: '~90 min lab',
-  failure: '~90 min failure read',
-  case: '~90 min case study',
-  build: '2–3 hr build',
-  review: '45 min teach-back',
-  capstone: '~90 min capstone',
+  learn: `~${DAILY_MINUTES} min session`,
+  lab: `~${DAILY_MINUTES} min lab`,
+  failure: `~${DAILY_MINUTES} min failure read`,
+  case: `~${DAILY_MINUTES} min case study`,
+  build: `${DAILY_MINUTES} min build`,
+  review: `${DAILY_MINUTES} min teach-back`,
+  capstone: `~${DAILY_MINUTES} min capstone`,
 };
 
 const CHEV_HTML = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
@@ -53,14 +67,23 @@ const ui = {
   openGuides: new Set(),
   overdueOpen: false,
   planSeen: false,
+  importMode: 'merge',
 };
 
 const view = document.getElementById('view');
 const toastEl = document.getElementById('toast');
 const themeBtn = document.getElementById('theme-btn');
+const importFileEl = document.getElementById('import-file');
+const updateBannerEl = document.getElementById('update-banner');
+const updateBtnEl = document.getElementById('update-btn');
+const updateDismissEl = document.getElementById('update-dismiss');
 
 let toastTimer = null;
+let toastUndo = null;
 let deferredInstallPrompt = null;
+let swRegistration = null;
+let refreshing = false;
+let updateAvailable = false;
 
 /* ---------- theme ---------- */
 
@@ -183,6 +206,8 @@ function chipHTML(type) {
 
 function taskCard(item, options = {}) {
   const done = isDone(item.id);
+  const entry = state.progress[item.id] || {};
+  const confidence = entry.confidence || 0;
   const date = dateFor(item);
   const guideKey = `${options.scope || 'main'}:${item.id}`;
   const guideOpen = ui.openGuides.has(guideKey);
@@ -202,7 +227,7 @@ function taskCard(item, options = {}) {
       <p class="task-meta">${meta}</p>
       <details class="task-guide" data-guide="${escapeHTML(guideKey)}" ${guideOpen ? 'open' : ''}>
         <summary>
-          <span>Study guide &amp; AI prompt</span>
+          <span>Study guide, notes &amp; AI prompt</span>
           ${CHEV_HTML}
         </summary>
         <div class="guide-body">
@@ -212,10 +237,23 @@ function taskCard(item, options = {}) {
             <span aria-hidden="true">↗</span>
           </a>
           <div class="guide-prompt-head">
-            <span class="eyebrow" style="margin:0">Socratic AI prompt</span>
+            <span class="eyebrow" style="margin:0">socratic-tutor prompt</span>
             <button class="btn guide-copy" type="button" data-copy-prompt="${item.id}">Copy prompt</button>
           </div>
           <pre class="guide-prompt">${escapeHTML(item.prompt)}</pre>
+          <a class="guide-skill-note" href="${SOCRATIC_SKILL_URL}" target="_blank" rel="noopener noreferrer">Requires socratic-tutor skill setup ↗</a>
+          <div class="study-log">
+            <label class="study-note-field">
+              <span class="eyebrow">Note</span>
+              <textarea class="study-note" data-note="${item.id}" rows="2" maxlength="${NOTE_MAX_LENGTH}" placeholder="One thing to remember…">${escapeHTML(entry.note || '')}</textarea>
+            </label>
+            <div class="confidence-row" role="group" aria-label="Confidence for ${escapeHTML(item.text)}">
+              <span class="eyebrow">Confidence</span>
+              <div class="confidence-btns">
+                ${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="conf-btn${confidence === value ? ' active' : ''}" data-confidence="${item.id}" data-value="${value}" aria-pressed="${confidence === value}" aria-label="${value} out of 5">${value}</button>`).join('')}
+              </div>
+            </div>
+          </div>
         </div>
       </details>
     </div>
@@ -223,7 +261,60 @@ function taskCard(item, options = {}) {
 }
 
 function ritualHTML() {
-  return `<div class="ritual"><span>Learn 30 min</span><span>Build 30 min</span><span>Quiz 20 min</span><span>Note 10 min</span></div>`;
+  return `<div class="ritual">${RITUAL.map((part) => `<span>${escapeHTML(part.label)} ${part.minutes} min</span>`).join('')}</div>`;
+}
+
+function socraticSetupCard() {
+  return `<section class="card pad-card">
+      <h3>Pre-setup: Socratic AI Tutor</h3>
+      <p class="sub">Prompts on each session invoke the <code>socratic-tutor</code> skill (for Gemini, DeepSeek, GLM, or coding agents). Download it into your skills directory before starting.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="${SOCRATIC_SKILL_URL}" target="_blank" rel="noopener noreferrer">Download socratic-tutor skill ↗</a>
+      </div>
+      <p class="settings-note">Place the <code>socratic-tutor</code> folder in your agent skills directory (e.g. <code>~/.gemini/config/skills/</code> or <code>.agents/skills/</code>). In Command Code, type <code>/socratic-tutor</code> and paste a session prompt after it.</p>
+    </section>`;
+}
+
+function weakTopics() {
+  return ALL_ITEMS
+    .map((item) => ({ item, entry: state.progress[item.id] || {} }))
+    .filter(({ entry }) => entry.confidence >= 1 && entry.confidence <= 2)
+    .sort((a, b) => a.entry.confidence - b.entry.confidence
+      || a.item.week - b.item.week
+      || a.item.dayOffset - b.item.dayOffset);
+}
+
+function weakTopicsHTML(showEmpty = false) {
+  const weak = weakTopics();
+  if (!weak.length && !showEmpty) return '';
+
+  const list = weak.length
+    ? `<ul class="weak-list">${weak.map(({ item, entry }) => `<li>
+        <span class="weak-week">W${item.week}</span>
+        <span class="weak-body">
+          <span>${escapeHTML(item.text)}</span>
+          ${entry.note ? `<span class="weak-note">${escapeHTML(entry.note)}</span>` : ''}
+        </span>
+        <span class="weak-score">${entry.confidence}/5</span>
+      </li>`).join('')}</ul>`
+    : '<p class="weak-empty">No weak topics logged yet. Rate a session 1 or 2 and it will show up here for the Sunday teach-back.</p>';
+
+  return `<section class="card pad-card weak-card">
+      <h3>Weak topics · Sunday teach-back</h3>
+      <p class="sub">Low-confidence sessions to revisit before you teach the week back.</p>
+      ${list}
+    </section>`;
+}
+
+function backupBadgeHTML() {
+  const at = loadLastBackup();
+  if (!at) return '<span class="status-badge is-warn">No backup yet</span>';
+  const day = localDateStr(new Date(at));
+  const days = Math.max(0, daysBetween(day, todayStr()));
+  const label = days === 0
+    ? 'Backed up today'
+    : `Last backup ${days} day${days === 1 ? '' : 's'} ago`;
+  return `<span class="status-badge${days >= 7 ? ' is-warn' : ''}">${escapeHTML(label)}</span>`;
 }
 
 /* ---------- Today ---------- */
@@ -240,6 +331,7 @@ function renderToday() {
     .filter((entry) => entry.date < today && !isDone(entry.item.id))
     .sort((a, b) => a.date.localeCompare(b.date) || a.item.dayOffset - b.item.dayOffset);
   const next = dated.find((entry) => entry.date > today && !isDone(entry.item.id));
+  const isSunday = parseDateStr(today).getDay() === 0;
   const weekNumber = currentWeekNumber();
   const week = WEEKS[weekNumber - 1];
   const phase = PHASES.find((p) => p.weeks.includes(weekNumber));
@@ -268,9 +360,10 @@ function renderToday() {
       </div>
       <div class="card pad-card">
         <h3>Prep while you wait</h3>
-        <p class="sub">Set up a lab repo, protect 90 minutes a day, and skim Week 1. Each plan week maps Monday to Sunday.</p>
+        <p class="sub">Set up a lab repo, protect ${DAILY_MINUTES} minutes a day, and skim Week 1. Each plan week maps Monday to Sunday.</p>
         ${ritualHTML()}
-      </div>`;
+      </div>
+      ${socraticSetupCard()}`;
   }
 
   let html = `<section class="hero">
@@ -322,6 +415,20 @@ function renderToday() {
       <p class="sub">Anchor the session — the checkmark is the smallest unit of progress.</p>
       ${ritualHTML()}
     </div>`;
+
+  if (isSunday) html += weakTopicsHTML(true);
+
+  html += `<section class="card pad-card">
+      <div class="card-head">
+        <h3>Backup &amp; update progress</h3>
+        ${backupBadgeHTML()}
+      </div>
+      <p class="sub">Export a JSON backup anytime or import one to merge new progress. Notes and confidence ratings are included.</p>
+      <div class="btn-row">
+        <button class="btn" type="button" data-action="export-json">Export backup</button>
+        <button class="btn" type="button" data-action="import-merge">Import &amp; update</button>
+      </div>
+    </section>`;
 
   return html;
 }
@@ -402,7 +509,8 @@ function renderProgress() {
       if (done) cls += ' is-done';
       else if (date < today) cls += ' is-missed';
       if (date === today) cls += ' is-today';
-      return `<span class="${cls}" title="${escapeHTML(`${formatShort(date)} · ${item.text}${done ? ' · done' : ''}`)}"></span>`;
+      const label = `${formatShort(date)} · ${item.text}${done ? ' · done' : ''}`;
+      return `<span class="${cls}" role="img" aria-label="${escapeHTML(label)}" title="${escapeHTML(label)}"></span>`;
     }).join('');
     return `<div class="heat-col">${cells}</div>`;
   }).join('');
@@ -457,6 +565,7 @@ function renderProgress() {
       <p class="sub">Where you are across the six phases.</p>
       ${phaseRows}
     </div>
+    ${weakTopicsHTML()}
     <section class="card pad-card" id="settings">
       <h3>Schedule</h3>
       <p class="sub">Week 1 · Day 1 starts here. Moving it shifts every session; completed items stay checked.</p>
@@ -478,14 +587,18 @@ function renderProgress() {
       <p class="settings-note">A static app can’t schedule OS notifications while closed. Calendar alerts work everywhere. For a daily push, the repo includes an optional ntfy + GitHub Actions setup (see README).</p>
     </section>
     <section class="card pad-card">
-      <h3>Backup</h3>
-      <p class="sub">Progress lives in this browser only. Export a backup before clearing data or switching phones.</p>
-      <div class="btn-row">
-        <button class="btn" type="button" data-action="export-json">Export progress</button>
-        <button class="btn" type="button" data-action="import-trigger">Import backup</button>
-        <input type="file" id="import-file" accept=".json,application/json" hidden>
+      <div class="card-head">
+        <h3>Backup &amp; update progress</h3>
+        ${backupBadgeHTML()}
       </div>
-    </section>`;
+      <p class="sub">Progress lives in this browser only. Export a JSON backup anytime (notes and confidence included), or import one to update (merge) or replace progress.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="button" data-action="export-json">Export backup</button>
+        <button class="btn" type="button" data-action="import-merge">Import &amp; update</button>
+        <button class="btn btn-ghost" type="button" data-action="import-replace">Replace from backup</button>
+      </div>
+    </section>
+    ${socraticSetupCard()}`;
 
   if (!standalone) {
     html += `<section class="card pad-card">
@@ -553,25 +666,27 @@ function render(options = {}) {
 
 /* ---------- Toast ---------- */
 
-function showToast(message, undoId = null) {
-  toastEl.innerHTML = `<span>${escapeHTML(message)}</span>${undoId ? `<button type="button" data-undo="${undoId}">Undo</button>` : ''}`;
+function showToast(message, undo = null) {
+  toastUndo = typeof undo === 'function'
+    ? undo
+    : (typeof undo === 'string' ? () => toggleItem(undo, { silent: true }) : null);
+  toastEl.innerHTML = `<span>${escapeHTML(message)}</span>${toastUndo ? '<button type="button" data-undo>Undo</button>' : ''}`;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 5000);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 7000);
 }
 
 function hideToast() {
   toastEl.classList.remove('show');
   clearTimeout(toastTimer);
+  toastUndo = null;
 }
 
 toastEl.addEventListener('click', (event) => {
-  const undo = event.target.closest('[data-undo]');
-  if (!undo) return;
-  const id = undo.dataset.undo;
+  if (!event.target.closest('[data-undo]')) return;
+  const action = toastUndo;
   hideToast();
-  toggleItem(id, { silent: true });
-  showToast('Undone');
+  if (action) action();
 });
 
 /* ---------- Actions ---------- */
@@ -581,8 +696,15 @@ function toggleItem(id, options = {}) {
   if (!item) return;
   const shouldRestoreFocus = document.activeElement?.dataset?.check === id;
   const wasDone = isDone(id);
-  if (wasDone) delete state.progress[id];
-  else state.progress[id] = { done: true, at: new Date().toISOString() };
+  if (wasDone) {
+    const entry = { ...(state.progress[id] || {}) };
+    delete entry.done;
+    delete entry.at;
+    if (entry.note || entry.confidence) state.progress[id] = entry;
+    else delete state.progress[id];
+  } else {
+    state.progress[id] = { ...(state.progress[id] || {}), done: true, at: new Date().toISOString() };
+  }
   saveProgress(state.progress);
   render({ preserveScroll: true });
   if (shouldRestoreFocus) {
@@ -597,6 +719,20 @@ function toggleItem(id, options = {}) {
   if (navigator.vibrate) navigator.vibrate(8);
   const label = item.text.length > 44 ? `${item.text.slice(0, 44)}…` : item.text;
   showToast(`Done — ${label}`, id);
+}
+
+function setConfidence(id, value) {
+  if (!ITEM_BY_ID.has(id) || !(value >= 1 && value <= 5)) return;
+  const entry = { ...(state.progress[id] || {}) };
+  const cleared = entry.confidence === value;
+  if (cleared) delete entry.confidence;
+  else entry.confidence = value;
+  if (entry.done || entry.note || entry.confidence) state.progress[id] = entry;
+  else delete state.progress[id];
+  saveProgress(state.progress);
+  render({ preserveScroll: true });
+  document.querySelector(`[data-confidence="${id}"][data-value="${value}"]`)?.focus({ preventScroll: true });
+  showToast(cleared ? 'Confidence cleared' : `Confidence ${value}/5 saved`);
 }
 
 function exportICS(mode) {
@@ -628,28 +764,75 @@ function exportBackup() {
     progress: state.progress,
   };
   downloadFile(`ds-tracker-backup-${todayStr()}.json`, 'application/json', JSON.stringify(payload, null, 2));
+  markBackupExported();
+  render({ preserveScroll: true });
   showToast('Backup downloaded');
 }
 
-async function importBackup(file) {
+function restoreSnapshot() {
+  const snapshot = loadSnapshot();
+  if (!snapshot) {
+    showToast('No snapshot available');
+    return;
+  }
+  state.progress = snapshot.progress;
+  state.settings = snapshot.settings;
+  saveProgress(state.progress);
+  saveSettings(state.settings);
+  render({ preserveScroll: true });
+  showToast('Previous progress restored');
+}
+
+function mergeProgressEntry(local = {}, incoming = {}) {
+  const merged = { ...local };
+  if (incoming.done && !merged.done) {
+    merged.done = true;
+    merged.at = incoming.at || new Date().toISOString();
+  }
+  if (!merged.note && incoming.note) merged.note = incoming.note;
+  if (!merged.confidence && incoming.confidence) merged.confidence = incoming.confidence;
+  return merged;
+}
+
+async function importBackup(file, mode = 'merge') {
   try {
     const data = JSON.parse(await file.text());
-    if (!data || typeof data.progress !== 'object' || Array.isArray(data.progress)) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new Error('Invalid backup');
     }
-    const clean = {};
-    for (const [id, entry] of Object.entries(data.progress)) {
-      if (!ITEM_BY_ID.has(id) || entry?.done !== true) continue;
-      const at = typeof entry.at === 'string' && !Number.isNaN(Date.parse(entry.at))
-        ? entry.at
-        : new Date().toISOString();
-      clean[id] = { done: true, at };
+    if (data.version !== 1) throw new Error('Unsupported backup version');
+    if (!data.progress || typeof data.progress !== 'object' || Array.isArray(data.progress)) {
+      throw new Error('Invalid backup');
     }
-    const count = Object.keys(clean).length;
-    if (!confirm(`Import ${count} completed item${count === 1 ? '' : 's'}? This replaces current progress.`)) {
+
+    const clean = {};
+    for (const [id, entry] of Object.entries(sanitizeProgress(data.progress))) {
+      if (ITEM_BY_ID.has(id)) clean[id] = entry;
+    }
+
+    if (!Object.keys(clean).length) {
+      showToast('That backup has no progress to import');
       return;
     }
-    state.progress = clean;
+    const doneCount = Object.values(clean).filter((entry) => entry.done).length;
+
+    if (mode === 'replace') {
+      if (!confirm(`Import ${doneCount} completed item${doneCount === 1 ? '' : 's'}? This replaces current progress. A snapshot is saved so you can undo.`)) {
+        return;
+      }
+      saveSnapshot({ progress: state.progress, settings: state.settings, reason: 'replace-import' });
+      state.progress = clean;
+    } else {
+      const added = Object.keys(clean).filter((id) => clean[id].done && !isDone(id)).length;
+      if (!confirm(`Merge backup (${doneCount} completed, ${added} new)? Existing checkmarks are kept.`)) {
+        return;
+      }
+      const merged = { ...state.progress };
+      for (const [id, entry] of Object.entries(clean)) {
+        merged[id] = mergeProgressEntry(merged[id], entry);
+      }
+      state.progress = merged;
+    }
     saveProgress(state.progress);
 
     const settings = data.settings;
@@ -662,10 +845,16 @@ async function importBackup(file) {
       saveSettings(state.settings);
     }
 
-    render();
-    showToast('Backup imported');
-  } catch {
-    showToast('Could not import that backup');
+    render({ preserveScroll: true });
+    if (mode === 'replace') {
+      showToast('Backup restored', restoreSnapshot);
+    } else {
+      showToast('Progress updated from backup');
+    }
+  } catch (error) {
+    showToast(error?.message === 'Unsupported backup version'
+      ? 'Unsupported backup version'
+      : 'Could not import that backup');
   }
 }
 
@@ -687,11 +876,14 @@ function handleAction(action) {
     case 'export-json':
       exportBackup();
       break;
-    case 'import-trigger': {
-      const input = document.getElementById('import-file');
-      if (input) input.click();
+    case 'import-merge':
+      ui.importMode = 'merge';
+      importFileEl?.click();
       break;
-    }
+    case 'import-replace':
+      ui.importMode = 'replace';
+      importFileEl?.click();
+      break;
     case 'install-app':
       if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
@@ -699,11 +891,12 @@ function handleAction(action) {
       }
       break;
     case 'reset-progress':
-      if (confirm('Reset all progress? This cannot be undone.')) {
+      if (confirm('Reset all progress? A snapshot is saved so you can undo.')) {
+        saveSnapshot({ progress: state.progress, settings: state.settings, reason: 'reset' });
         state.progress = {};
         saveProgress(state.progress);
         render({ preserveScroll: true });
-        showToast('Progress reset');
+        showToast('Progress reset', restoreSnapshot);
       }
       break;
     default:
@@ -743,6 +936,11 @@ view.addEventListener('click', (event) => {
     toggleItem(check.dataset.check);
     return;
   }
+  const confBtn = event.target.closest('[data-confidence]');
+  if (confBtn) {
+    setConfidence(confBtn.dataset.confidence, Number(confBtn.dataset.value));
+    return;
+  }
   const copyBtn = event.target.closest('[data-copy-prompt]');
   if (copyBtn) {
     copyPrompt(copyBtn.dataset.copyPrompt);
@@ -750,6 +948,20 @@ view.addEventListener('click', (event) => {
   }
   const action = event.target.closest('[data-action]');
   if (action) handleAction(action.dataset.action);
+});
+
+view.addEventListener('input', (event) => {
+  const target = event.target;
+  if (!target.matches?.('[data-note]')) return;
+  const id = target.dataset.note;
+  if (!ITEM_BY_ID.has(id)) return;
+  const note = target.value.slice(0, NOTE_MAX_LENGTH);
+  const entry = { ...(state.progress[id] || {}) };
+  if (note.trim()) entry.note = note;
+  else delete entry.note;
+  if (entry.done || entry.note || entry.confidence) state.progress[id] = entry;
+  else delete state.progress[id];
+  saveProgress(state.progress);
 });
 
 view.addEventListener('change', (event) => {
@@ -768,10 +980,13 @@ view.addEventListener('change', (event) => {
     state.settings.weekendTime = target.value;
     saveSettings(state.settings);
     showToast('Weekend time saved');
-  } else if (target.id === 'import-file' && target.files?.[0]) {
-    importBackup(target.files[0]);
-    target.value = '';
   }
+});
+
+importFileEl?.addEventListener('change', (event) => {
+  const file = event.target.files?.[0];
+  if (file) importBackup(file, ui.importMode);
+  event.target.value = '';
 });
 
 window.addEventListener('hashchange', () => {
@@ -796,6 +1011,23 @@ themeBtn.addEventListener('click', () => {
 
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', updateThemeLabel);
 
+function showUpdateBanner() {
+  updateAvailable = true;
+  if (updateBannerEl) updateBannerEl.hidden = false;
+}
+
+updateBtnEl?.addEventListener('click', () => {
+  const waiting = swRegistration?.waiting;
+  if (waiting) {
+    waiting.postMessage({ type: 'SKIP_WAITING' });
+    return;
+  }
+  window.location.reload();
+});
+updateDismissEl?.addEventListener('click', () => {
+  if (updateBannerEl) updateBannerEl.hidden = true;
+});
+
 /* ---------- Boot ---------- */
 
 applyStoredTheme();
@@ -803,7 +1035,27 @@ updateThemeLabel();
 render();
 
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!updateAvailable || refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => { /* offline support is optional */ });
+    navigator.serviceWorker.register('./sw.js')
+      .then((registration) => {
+        swRegistration = registration;
+        if (registration.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          if (!worker) return;
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner();
+            }
+          });
+        });
+      })
+      .catch(() => { /* offline support is optional */ });
   });
 }
