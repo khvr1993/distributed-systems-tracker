@@ -66,10 +66,10 @@ export const WEEKS = [
     week: 1,
     title: 'Networking & RPC',
     days: {
-      mon: 'DNS, TCP 3-way handshake, UDP',
-      tue: 'HTTP/1.1 vs HTTP/2 vs gRPC/Thrift — streams, multiplexing',
+      mon: 'IP (IPv4/IPv6, public/private), OSI model, DNS, TCP 3-way handshake, UDP',
+      tue: 'REST vs GraphQL vs gRPC/Thrift — HTTP/1.1, HTTP/2, streams, multiplexing',
       wed: 'Lab: Build client/server over TCP, add timeout',
-      thu: 'Load Balancing L4 vs L7, health checks, sticky sessions',
+      thu: 'Proxies (forward vs reverse), Load Balancing L4 vs L7, health checks, sticky sessions',
       fri: 'Failure: DNS outage / TCP cascade',
       sat: 'Weekend Build: Reverse proxy + load balancer in Go',
     },
@@ -88,10 +88,10 @@ export const WEEKS = [
   },
   {
     week: 3,
-    title: 'Theory + CAP',
+    title: 'Theory, CAP & Scalability',
     days: {
-      mon: 'CAP theorem formal',
-      tue: 'PACELC, availability vs consistency tradeoffs',
+      mon: 'CAP theorem formal, Availability (nines, series vs parallel, HA vs fault tolerance)',
+      tue: 'PACELC, vertical vs horizontal scalability, active-active vs active-passive clustering',
       wed: 'Quorums: R+W > N',
       thu: 'Lab: Quorum calculator + simulator',
       fri: 'Case: Dynamo vs CP systems',
@@ -112,10 +112,10 @@ export const WEEKS = [
   },
   {
     week: 5,
-    title: 'Storage Engines',
+    title: 'Storage & Storage Engines',
     days: {
-      mon: 'B-Tree, LSM Tree',
-      tue: 'WAL, SSTables',
+      mon: 'Block vs File vs Object storage (S3), RAID, NAS, HDFS; B-Tree vs LSM Tree',
+      tue: 'WAL, SSTables, database indexes (dense, sparse, secondary)',
       wed: 'Lab: Build simple LSM KV store',
       thu: 'Compaction, write amplification',
       fri: 'Failure: LSM stall',
@@ -126,8 +126,8 @@ export const WEEKS = [
     week: 6,
     title: 'Replication',
     days: {
-      mon: 'Leader-follower, async vs sync replication, lag',
-      tue: 'Multi-leader, conflict resolution',
+      mon: 'Leader-follower (master-slave), async vs sync replication, lag',
+      tue: 'Multi-leader (master-master), conflict resolution',
       wed: 'Leaderless replication (Dynamo style)',
       thu: 'Lab: Replicate KV to 3 nodes, kill leader',
       fri: 'Failure: Replication lag causing stale reads',
@@ -136,9 +136,9 @@ export const WEEKS = [
   },
   {
     week: 7,
-    title: 'Partitioning',
+    title: 'Partitioning & Sharding',
     days: {
-      mon: 'Partitioning strategies, range vs hash',
+      mon: 'Sharding & partitioning strategies (hash, range, list, composite), Database Federation',
       tue: 'Consistent Hashing, virtual nodes',
       wed: 'Rebalancing, hot partitions',
       thu: 'Lab: Consistent hash ring + rebalance sim',
@@ -148,11 +148,11 @@ export const WEEKS = [
   },
   {
     week: 8,
-    title: 'Transactions',
+    title: 'Data Models & Transactions',
     days: {
-      mon: 'ACID, 2PC, drawbacks',
-      tue: 'Sagas, Outbox pattern',
-      wed: 'Distributed transactions vs NoSQL',
+      mon: 'ACID & BASE, Transactions, 2PC, 3PC, drawbacks',
+      tue: 'Sagas, Outbox pattern, Normalization vs Denormalization',
+      wed: 'SQL vs NoSQL (Document, KV, Wide-column, Graph, Time-series), Materialized views, N+1 queries',
       thu: 'Lab: Saga with compensation',
       fri: 'Failure: 2PC blocking',
       sat: 'Weekend Build: Order service with Saga pattern',
@@ -162,8 +162,8 @@ export const WEEKS = [
     week: 9,
     title: 'Queues & Pub/Sub',
     days: {
-      mon: 'Queues, visibility timeout, DLQ, ordering guarantees',
-      tue: 'Pub/Sub fanout',
+      mon: 'Message Brokers vs ESB; Queues, visibility timeout, DLQ, ordering guarantees',
+      tue: 'Pub/Sub fanout, push vs pull delivery, filtering, durability',
       wed: 'Lab: Build queue with visibility timeout',
       thu: 'Backpressure, consumer lag',
       fri: 'Failure: Poison pill message',
@@ -172,11 +172,11 @@ export const WEEKS = [
   },
   {
     week: 10,
-    title: 'Streaming / Kafka',
+    title: 'Streaming, Kafka & EDA',
     days: {
       mon: 'Topics, partitions, offsets, brokers',
       tue: 'Producer guarantees, consumer groups, rebalancing',
-      wed: 'Exactly-once, idempotent producer',
+      wed: 'Event-Driven Architecture (EDA), Event Sourcing, CQRS, exactly-once',
       thu: 'Lab: 2 producers, 2 consumers on Kafka',
       fri: 'Failure: Kafka rebalance storm',
       sat: 'Weekend Build: Event pipeline',
@@ -184,10 +184,10 @@ export const WEEKS = [
   },
   {
     week: 11,
-    title: 'Computation & Scheduling',
+    title: 'Architecture, Real-Time & Scheduling',
     days: {
-      mon: 'Batch vs Stream vs RPC',
-      tue: 'Work queues, cron, delayed jobs',
+      mon: 'N-tier architecture, Monoliths vs Modular Monoliths vs Microservices, Batch vs Stream',
+      tue: 'Long polling, WebSockets, Server-Sent Events (SSE); work queues, cron, delayed jobs',
       wed: 'Scheduling, priorities, fairness',
       thu: 'Lab: Job scheduler with retries',
       fri: 'Failure: Thundering herd on cron',
@@ -198,7 +198,7 @@ export const WEEKS = [
     week: 12,
     title: 'Coordination at Scale',
     days: {
-      mon: 'Service Discovery, Consul/etcd/ZooKeeper',
+      mon: 'Service Discovery (client vs server-side, Consul/etcd/ZooKeeper), Service Mesh',
       tue: 'Distributed locks, leader election libraries',
       wed: 'Configuration distribution',
       thu: 'Lab: Use etcd for service registry',
@@ -232,11 +232,11 @@ export const WEEKS = [
   },
   {
     week: 15,
-    title: 'Performance',
+    title: 'Performance & Caching',
     days: {
       mon: 'Latency, throughput, Little’s Law',
       tue: 'Tail latency, p50/p99, hedging, batching',
-      wed: 'Caching strategies, invalidation, stampede',
+      wed: 'Caching (write-through/around/back), eviction (LRU/LFU), distributed cache, stampede',
       thu: 'Lab: Add cache + measure p99',
       fri: 'Failure: Cache stampede',
       sat: 'Weekend Build: Cached, rate-limited API',
@@ -244,10 +244,10 @@ export const WEEKS = [
   },
   {
     week: 16,
-    title: 'Rate Limiting & Backpressure',
+    title: 'Rate Limiting, API Gateway & Backpressure',
     days: {
-      mon: 'Token bucket, leaky bucket, fixed window',
-      tue: 'Backpressure, load shedding, graceful degradation',
+      mon: 'Rate limiting: token/leaky bucket, fixed/sliding window, sliding log, distributed races',
+      tue: 'API Gateway & BFF pattern, Backpressure, load shedding, graceful degradation',
       wed: 'Autoscaling signals',
       thu: 'Lab: Rate limiter per user/IP',
       fri: 'Failure: No backpressure cascade',
@@ -256,9 +256,9 @@ export const WEEKS = [
   },
   {
     week: 17,
-    title: 'Observability',
+    title: 'Observability & Reliability',
     days: {
-      mon: 'Metrics: RED/USE, SLO/SLI, Error Budget',
+      mon: 'Metrics: RED/USE, SLA/SLO/SLI, Error Budget',
       tue: 'Tracing: spans, context propagation',
       wed: 'Lab: Add OpenTelemetry to service',
       thu: 'Alerting, burn rate alerts',
@@ -268,9 +268,9 @@ export const WEEKS = [
   },
   {
     week: 18,
-    title: 'Deployment & Ops',
+    title: 'Deployment, Containers & Ops',
     days: {
-      mon: 'Blue-Green, Canary, Rolling',
+      mon: 'VMs & Hypervisors vs Containers; Blue-Green, Canary, Rolling',
       tue: 'Feature Flags, Config, Rollback',
       wed: 'Multi-region, active-active vs active-passive',
       thu: 'Lab: Deploy with canary analysis',
@@ -282,7 +282,7 @@ export const WEEKS = [
     week: 19,
     title: 'Disaster Recovery',
     days: {
-      mon: 'RPO/RTO, backup, cross-region replication',
+      mon: 'RPO/RTO, backup, Cold/Warm/Hot site, cross-region replication',
       tue: 'Chaos engineering, fault injection',
       wed: 'Lab: Kill nodes, partition network',
       thu: 'Runbooks',
@@ -294,8 +294,8 @@ export const WEEKS = [
     week: 20,
     title: 'Security',
     days: {
-      mon: 'AuthN/AuthZ, OAuth, JWT',
-      tue: 'mTLS, service identity',
+      mon: 'AuthN/AuthZ, OAuth 2.0, OpenID Connect (OIDC), SSO/SAML, JWT',
+      tue: 'SSL/TLS handshake, mTLS, service identity',
       wed: 'Secrets management, audit logs',
       thu: 'Lab: Add mTLS to RPC',
       fri: 'Failure: Token leak',
@@ -306,40 +306,60 @@ export const WEEKS = [
     week: 21,
     title: 'Capstone 1 — URL Shortener at Scale',
     days: {
-      mon: 'Capstone 1 — URL Shortener at Scale: hashing, storage, caching, rate limit, analytics pipeline.',
+      mon: 'System design interview framework: requirements, back-of-the-envelope estimation, data model, APIs',
+      tue: 'Capstone 1 — URL Shortener: Base62 encoding, Key Generation Service (KGS), DB schema',
+      wed: 'Capstone 1 — URL Shortener: caching, data partitioning, DB cleanup, rate limiting',
+      thu: 'Capstone 1 — URL Shortener: analytics pipeline, security, bottleneck analysis',
+      fri: 'Failure: KGS single point of failure / hot short-URL cache miss',
+      sat: 'Weekend Build: Working URL Shortener with KGS, cache & rate limiter',
     },
   },
   {
     week: 22,
     title: 'Capstone 2 — Distributed KV + Queue',
     days: {
-      mon: 'Capstone 2 — Distributed KV + Queue: combine Weeks 5–10 — sharded, replicated, consensus for leader.',
+      mon: 'Capstone 2 — KV Store: requirements, estimation, Raft leader election, WAL + SSTables',
+      tue: 'Capstone 2 — KV Store: consistent hashing sharding, replication & read/write quorums',
+      wed: 'Capstone 2 — Distributed Queue: visibility timeout, DLQ, consumer groups & backpressure',
+      thu: 'Lab: Integrate sharded KV + reliable queue with health checks & failover',
+      fri: 'Failure: Split-brain / rebalance storm during node failure',
+      sat: 'Weekend Build: End-to-end Distributed KV + Queue demo & load test',
     },
   },
   {
     week: 23,
     title: 'Capstone 3 — Notification System',
     days: {
-      mon: 'Capstone 3 — Notification System: fanout, queues, streaming, retries, rate limiting, observability.',
+      mon: 'Capstone 3 — Notification System: requirements, estimation, data model, APIs',
+      tue: 'Capstone 3 — Fanout, priority queues, Kafka ingestion, templates & user preferences',
+      wed: 'Capstone 3 — Real-time delivery (WebSockets/SSE/APNs/FCM), retries, DLQ & idempotency',
+      thu: 'Capstone 3 — Per-user/channel rate limiting, circuit breakers & observability',
+      fri: 'Failure: Provider outage / notification retry storm',
+      sat: 'Weekend Build: Multi-channel notification dispatcher with rate limits & metrics',
     },
   },
   {
     week: 24,
-    title: 'Capstone 4 — Chat / Feed System',
+    title: 'Capstone 4 — WhatsApp & Twitter',
     days: {
-      mon: 'Capstone 4 — Chat / Feed System: consistency, ordering, presence, scaling.',
+      mon: 'Case Study: WhatsApp — 1:1/group chat, WebSockets, presence (last seen), read receipts',
+      tue: 'Case Study: WhatsApp — message ordering, media storage/CDN, E2EE & partitioning',
+      wed: 'Case Study: Twitter — data model, APIs, fan-out on write vs read (celebrity problem)',
+      thu: 'Case Study: Twitter — timeline ranking, retweets, search indexing & Redis caching',
+      fri: 'Failure: Celebrity tweet fan-out storm / chat reconnection thundering herd',
+      sat: 'Weekend Build: Real-time chat + timeline prototype over WebSockets',
     },
   },
   {
     week: 25,
-    title: 'Uber-Scale Designs — Geo, Multi-Region',
+    title: 'Geo-Scale, Netflix & Uber',
     days: {
-      mon: 'Geo-partitioning, data residency',
-      tue: 'Global consistency vs local',
-      wed: 'Edge caching, CDN',
-      thu: 'Design drill: Uber surge pricing backend',
-      fri: 'Design drill: Uber dispatch system',
-      sat: 'Weekend: Write 2 design docs',
+      mon: 'Geohashing and Quadtrees — spatial indexing, precision vs k-NN tradeoffs',
+      tue: 'Geo-partitioning, data residency, global vs local consistency, Push vs Pull CDN',
+      wed: 'Case Study: Netflix — video upload/transcoding, HLS/DASH streaming, CDN & geo-blocking',
+      thu: 'Case Study: Netflix — recommendations, caching, bandwidth estimation & bottlenecks',
+      fri: 'Case Study: Uber — location tracking, ride matching (Quadtrees/Geohash), dispatch & surge',
+      sat: 'Weekend: Write 2 full design docs (Netflix + Uber) with estimations & bottlenecks',
     },
   },
   {
@@ -347,7 +367,7 @@ export const WEEKS = [
     title: 'Mock + Review',
     days: {
       mon: 'Mock design interview + AI critique',
-      tue: 'Teach-back all 10 buckets in 2 hours',
+      tue: 'Teach-back all 6 phases in 2 hours',
       wed: 'Write your “Distributed Systems Playbook” — 20 pages',
       thu: 'Final quiz: 50 questions across all weeks',
       fri: 'Plan next 6 months: go deep on evals/agentic systems',
@@ -358,7 +378,7 @@ export const WEEKS = [
 function typeFor(day, text) {
   if (/^Lab:/i.test(text)) return 'lab';
   if (/^Failure:/i.test(text)) return 'failure';
-  if (/^Case:/i.test(text)) return 'case';
+  if (/^Case(?:\s+Study)?:/i.test(text)) return 'case';
   if (/^Capstone/i.test(text)) return 'capstone';
   if (day === 'sat') return 'build';
   if (day === 'sun') return 'review';

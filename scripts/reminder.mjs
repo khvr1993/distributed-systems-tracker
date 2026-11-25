@@ -18,7 +18,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
 }
 
 function offsetMinutes(value) {
-  const match = value.match(/^([+-])(\d{2}):?(\d{2})$/);
+  const match = value.match(/^([+-])?(\d{1,2}):?(\d{2})$/);
   if (!match) return 0;
   const sign = match[1] === '-' ? -1 : 1;
   return sign * (Number(match[2]) * 60 + Number(match[3]));

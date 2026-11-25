@@ -1,6 +1,5 @@
 const DURATION_BY_TYPE = {
   build: 'PT180M',
-  capstone: 'PT180M',
   review: 'PT45M',
 };
 
@@ -32,14 +31,24 @@ function escapeICS(value) {
     .replace(/\r?\n/g, '\\n');
 }
 
+const encoder = new TextEncoder();
+
 function foldLine(line) {
-  let rest = line;
   let out = '';
-  while (rest.length > 73) {
-    out += `${rest.slice(0, 73)}\r\n `;
-    rest = rest.slice(73);
+  let current = '';
+  let bytes = 0;
+  for (const char of line) {
+    const charBytes = encoder.encode(char).length;
+    if (bytes + charBytes > 75) {
+      out += `${current}\r\n `;
+      current = char;
+      bytes = 1 + charBytes;
+    } else {
+      current += char;
+      bytes += charBytes;
+    }
   }
-  return out + rest;
+  return out + current;
 }
 
 function utcStamp() {
@@ -69,7 +78,7 @@ export function generateICS(entries, settings) {
     const description = [
       `Week ${item.week} — ${item.weekTitle}`,
       item.text,
-      `Estimated time: ${item.type === 'build' || item.type === 'capstone' ? '2–3 hours' : item.type === 'review' ? '45 minutes' : '90 minutes'}`,
+      `Estimated time: ${item.type === 'build' ? '2–3 hours' : item.type === 'review' ? '45 minutes' : '90 minutes'}`,
       settings.appUrl ? `Open tracker: ${settings.appUrl}` : '',
     ].filter(Boolean).join('\n');
 

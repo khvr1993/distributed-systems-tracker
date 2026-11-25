@@ -1,6 +1,6 @@
 # DS Tracker
 
-A mobile-first tracker for a 26-week distributed systems study plan (160 sessions across 6 phases). No accounts, no backend, no build step — your progress stays in your browser and the app works offline.
+A mobile-first tracker for a 26-week distributed systems study plan (180 sessions across 6 phases). No accounts, no backend, no build step — your progress stays in your browser and the app works offline.
 
 ## What's inside
 
@@ -11,7 +11,7 @@ A mobile-first tracker for a 26-week distributed systems study plan (160 session
 - **Reminders** — export a calendar file with native alerts, or enable the optional ntfy push workflow.
 - **Backup** — export/import progress as JSON.
 
-The plan covers: networking and RPC, time and ordering, CAP/PACELC, consensus, storage engines, replication, partitioning, transactions, queues, Kafka/streaming, scheduling, coordination, failure patterns, idempotency, performance, rate limiting, observability, deployment, disaster recovery, security, then four capstones and Uber-scale design drills.
+The plan covers: networking (IP/OSI/DNS/TCP/UDP, REST/GraphQL/gRPC, WebSockets/SSE, proxies, load balancing), time and ordering, CAP/PACELC/availability/scalability, consensus (Paxos/Raft), storage (block/file/object, B-Tree/LSM), replication, partitioning/sharding/federation, SQL/NoSQL/normalization/transactions, queues/pub-sub/Kafka/EDA/event sourcing/CQRS, scheduling, coordination, failure patterns, idempotency, performance/caching, rate limiting/API gateway, observability, containers/deployment, disaster recovery, security (OAuth/OIDC/SSO/TLS/mTLS), geohashing/quadtrees, plus capstones and case studies (URL Shortener, Distributed KV + Queue, Notification System, WhatsApp, Twitter, Netflix, and Uber).
 
 ## Run locally
 

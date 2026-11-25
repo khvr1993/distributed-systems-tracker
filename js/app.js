@@ -35,7 +35,7 @@ const DURATION_TEXT = {
   case: '~90 min case study',
   build: '2–3 hr build',
   review: '45 min teach-back',
-  capstone: 'week-long capstone',
+  capstone: '~90 min capstone',
 };
 
 const CHEV_HTML = '<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
@@ -312,7 +312,7 @@ function renderPlan() {
   const weekNumber = currentWeekNumber();
 
   let html = `<section class="page-head">
-      <p class="eyebrow">All components · 10 buckets</p>
+      <p class="eyebrow">All 26 weeks · 6 phases</p>
       <h2>Plan</h2>
       <div class="bar" style="margin-top:12px"><span style="width:${stats.pct}%"></span></div>
       <p class="muted" style="font-size:12.5px;margin:8px 0 0">${stats.done} of ${TOTAL} items complete · ${stats.weeksDone}/26 weeks finished</p>
@@ -480,7 +480,7 @@ function renderProgress() {
       <p class="sub">Clears every checkmark. Your settings are kept.</p>
       <button class="btn btn-danger btn-block" type="button" data-action="reset-progress">Reset progress</button>
     </section>
-    <p class="footer-note">Progress saves automatically on this device. 160 sessions · 6 phases · 26 weeks.</p>`;
+    <p class="footer-note">Progress saves automatically on this device. ${TOTAL} sessions · ${PHASES.length} phases · ${WEEKS.length} weeks.</p>`;
 
   return html;
 }
@@ -551,11 +551,15 @@ toastEl.addEventListener('click', (event) => {
 function toggleItem(id, options = {}) {
   const item = ITEM_BY_ID.get(id);
   if (!item) return;
+  const shouldRestoreFocus = document.activeElement?.dataset?.check === id;
   const wasDone = isDone(id);
   if (wasDone) delete state.progress[id];
   else state.progress[id] = { done: true, at: new Date().toISOString() };
   saveProgress(state.progress);
   render({ preserveScroll: true });
+  if (shouldRestoreFocus) {
+    document.querySelector(`[data-check="${id}"]`)?.focus({ preventScroll: true });
+  }
 
   if (options.silent) return;
   if (wasDone) {
@@ -714,7 +718,7 @@ view.addEventListener('change', (event) => {
 });
 
 window.addEventListener('hashchange', () => {
-  const tab = location.hash.slice(1);
+  const tab = location.hash.slice(1) || 'today';
   if (!TABS.includes(tab)) return;
   state.tab = tab;
   render({ scrollTop: true });
@@ -723,6 +727,7 @@ window.addEventListener('hashchange', () => {
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
+  if (state.tab === 'progress') render({ preserveScroll: true });
 });
 
 themeBtn.addEventListener('click', () => {

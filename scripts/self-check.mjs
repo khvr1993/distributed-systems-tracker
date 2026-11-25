@@ -5,15 +5,13 @@ import { generateICS } from '../js/ics.js';
 
 const items = getItems();
 
-assert.equal(items.length, 160, 'expected 160 sessions');
+assert.equal(items.length, 180, 'expected 180 sessions');
 assert.equal(new Set(items.map((item) => item.id)).size, items.length, 'session ids must be unique');
 assert.equal(WEEKS.length, 26, 'expected 26 weeks');
 assert.equal(PHASES.length, 6, 'expected 6 phases');
 
 const expected = new Map();
-for (let week = 1; week <= 20; week += 1) expected.set(week, 7);
-for (const week of [21, 22, 23, 24]) expected.set(week, 2);
-expected.set(25, 7);
+for (let week = 1; week <= 25; week += 1) expected.set(week, 7);
 expected.set(26, 5);
 
 for (const [week, count] of expected) {
@@ -41,5 +39,35 @@ assert.ok(ics.trimEnd().endsWith('END:VCALENDAR'), 'calendar footer');
 assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 3, 'one event per session');
 assert.equal((ics.match(/BEGIN:VALARM/g) || []).length, 3, 'one alarm per session');
 assert.ok(ics.includes('UID:w1-mon@ds-tracker'), 'stable event uid');
+
+const fullIcs = generateICS(
+  items.map((item) => ({ item, date: addDays('2026-11-30', (item.week - 1) * 7 + item.dayOffset) })),
+  { weekdayTime: '07:30', weekendTime: '10:00', appUrl: 'https://example.com/' },
+);
+const maxLineBytes = Math.max(...fullIcs.split('\r\n').map((line) => Buffer.byteLength(line, 'utf8')));
+assert.ok(maxLineBytes <= 75, `ICS folded lines must be <= 75 UTF-8 bytes (got ${maxLineBytes})`);
+
+assert.ok(items.some((item) => item.week === 24 && item.type === 'case'), 'Case Study prefix maps to case type');
+
+const fullPlanText = items.map((item) => item.text).join('\n');
+for (const topic of [
+  'OSI model',
+  'GraphQL',
+  'Object storage',
+  'Normalization',
+  'Event Sourcing',
+  'CQRS',
+  'WebSockets',
+  'Geohashing',
+  'Quadtrees',
+  'OIDC',
+  'URL Shortener',
+  'WhatsApp',
+  'Twitter',
+  'Netflix',
+  'Uber',
+]) {
+  assert.ok(fullPlanText.includes(topic), `plan should include ${topic}`);
+}
 
 console.log(`Self-check passed: ${items.length} sessions · ${WEEKS.length} weeks · ${PHASES.length} phases · ICS ok.`);

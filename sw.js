@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ds-tracker-v1';
+const CACHE_NAME = 'ds-tracker-v2';
 
 const APP_SHELL = [
   './',
@@ -50,6 +50,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => cached);
+      if (cached) event.waitUntil(network);
       return cached || network;
     }),
   );
