@@ -1,0 +1,35 @@
+name: Daily study reminder
+
+on:
+  schedule:
+    # 02:30 UTC = 08:00 IST. Adjust for your timezone.
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: study-reminder
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Push today's sessions to ntfy
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ vars.NTFY_SERVER }}
+          START_DATE: ${{ vars.START_DATE }}
+          APP_URL: ${{ vars.APP_URL }}
+          TZ_OFFSET: ${{ vars.TZ_OFFSET }}
+        run: node scripts/reminder.mjs

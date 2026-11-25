@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DS Tracker — 26 Weeks of Distributed Systems</title>
+  <meta name="description" content="Mobile-first tracker for a 26-week distributed systems study plan.">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DS Tracker">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#today" aria-label="DS Tracker home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <circle cx="8" cy="9" r="3.2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="24" cy="8" r="3.2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="16" cy="24" r="3.2" stroke="currentColor" stroke-width="2"/>
+            <path d="M10.5 11.2 14 20.8M21.4 10.6 18 20.8M11.2 8.2l9.6-.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-eyebrow">26 weeks · 6 phases</span>
+          <span class="brand-name">DS Tracker</span>
+        </span>
+      </a>
+      <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.9 8.9 0 1 0 11.1 11.1Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <main id="view" class="view" aria-live="polite"></main>
+
+    <nav class="tabbar" aria-label="Sections">
+      <a class="tab" href="#today" data-tab="today">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15.5" rx="3" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M8 3.5V7M16 3.5V7M3.5 10h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M8 14h2M13.5 14h2.5M8 17h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span>Today</span>
+      </a>
+      <a class="tab" href="#plan" data-tab="plan">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 6.5h14M5 12h14M5 17.5h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="19" cy="17.5" r="2.2" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        <span>Plan</span>
+      </a>
+      <a class="tab" href="#progress" data-tab="progress">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 19.5V5.5M4 19.5h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M8 15.5v-4M12.5 15.5V7.5M17 15.5v-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span>Progress</span>
+      </a>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">DS Tracker needs JavaScript enabled.</p></noscript>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
