@@ -38,7 +38,7 @@ const ALL_ITEMS = getItems();
 const ITEM_BY_ID = new Map(ALL_ITEMS.map((item) => [item.id, item]));
 const WEEK_ITEMS = new Map(WEEKS.map((week) => [week.week, ALL_ITEMS.filter((item) => item.week === week.week)]));
 const TOTAL = ALL_ITEMS.length;
-const TABS = ['today', 'plan', 'progress'];
+const TABS = ['today', 'plan', 'progress', 'setup'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -362,8 +362,7 @@ function renderToday() {
         <h3>Prep while you wait</h3>
         <p class="sub">Set up a lab repo, protect ${DAILY_MINUTES} minutes a day, and skim Week 1. Each plan week maps Monday to Sunday.</p>
         ${ritualHTML()}
-      </div>
-      ${socraticSetupCard()}`;
+      </div>`;
   }
 
   let html = `<section class="hero">
@@ -416,19 +415,7 @@ function renderToday() {
       ${ritualHTML()}
     </div>`;
 
-  if (isSunday) html += weakTopicsHTML(true);
-
-  html += `<section class="card pad-card">
-      <div class="card-head">
-        <h3>Backup &amp; update progress</h3>
-        ${backupBadgeHTML()}
-      </div>
-      <p class="sub">Export a JSON backup anytime or import one to merge new progress. Notes and confidence ratings are included.</p>
-      <div class="btn-row">
-        <button class="btn" type="button" data-action="export-json">Export backup</button>
-        <button class="btn" type="button" data-action="import-merge">Import &amp; update</button>
-      </div>
-    </section>`;
+  html += weakTopicsHTML(isSunday);
 
   return html;
 }
@@ -526,8 +513,6 @@ function renderProgress() {
     </div>`;
   }).join('');
 
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-
   let html = `<section class="page-head">
       <p class="eyebrow">Momentum</p>
       <h2>Progress</h2>
@@ -561,11 +546,23 @@ function renderProgress() {
       </div>
     </div>
     <div class="card pad-card">
-      <h3>By phase</h3>
+      <h3>26-week roadmap by phase</h3>
       <p class="sub">Where you are across the six phases.</p>
       ${phaseRows}
-    </div>
-    ${weakTopicsHTML()}
+    </div>`;
+
+  return html;
+}
+
+/* ---------- Setup ---------- */
+
+function renderSetup() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+  let html = `<section class="page-head">
+      <p class="eyebrow">Preferences &amp; data</p>
+      <h2>Setup</h2>
+    </section>
     <section class="card pad-card" id="settings">
       <h3>Schedule</h3>
       <p class="sub">Week 1 · Day 1 starts here. Moving it shifts every session; completed items stay checked.</p>
@@ -648,6 +645,7 @@ function render(options = {}) {
   let html = '';
   if (state.tab === 'plan') html = renderPlan();
   else if (state.tab === 'progress') html = renderProgress();
+  else if (state.tab === 'setup') html = renderSetup();
   else html = renderToday();
 
   view.innerHTML = html;
@@ -999,7 +997,7 @@ window.addEventListener('hashchange', () => {
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
-  if (state.tab === 'progress') render({ preserveScroll: true });
+  if (state.tab === 'setup') render({ preserveScroll: true });
 });
 
 themeBtn.addEventListener('click', () => {

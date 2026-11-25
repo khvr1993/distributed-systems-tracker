@@ -547,6 +547,8 @@ summary:focus-visible { outline-offset: -2px; }
   border-radius: 5px;
   background: var(--card-2);
   border: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ---------- Study log (notes + confidence) ---------- */
@@ -559,12 +561,17 @@ summary:focus-visible { outline-offset: -2px; }
   gap: 9px;
 }
 
-.study-note-field { display: block; }
+.study-note-field {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
 
 .study-log .eyebrow { margin: 0 0 5px; }
 
 .study-note {
   width: 100%;
+  max-width: 100%;
   min-height: 62px;
   resize: vertical;
   padding: 8px 10px;
@@ -585,14 +592,17 @@ summary:focus-visible { outline-offset: -2px; }
 
 .confidence-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .confidence-row .eyebrow { margin: 0; }
 
-.confidence-btns { display: flex; gap: 5px; }
+.confidence-btns { display: flex; flex-wrap: wrap; gap: 5px; }
 
 .conf-btn {
   width: 30px;
@@ -939,9 +949,7 @@ summary:focus-visible { outline-offset: -2px; }
 .btn-ghost { background: transparent; }
 
 .settings-note {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
+  display: block;
   margin: 10px 0 0;
   padding: 10px 12px;
   border-radius: 12px;
@@ -950,6 +958,13 @@ summary:focus-visible { outline-offset: -2px; }
   color: var(--muted);
   font-size: 11.5px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.settings-note code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .rest-card {
@@ -1051,7 +1066,7 @@ summary:focus-visible { outline-offset: -2px; }
   width: min(680px, 100%);
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--bg) 84%, transparent);
@@ -1169,6 +1184,9 @@ summary:focus-visible { outline-offset: -2px; }
   .hero h2 { font-size: 19px; }
   .stat b { font-size: 19px; }
   .phase-row { grid-template-columns: 1fr 1.2fr auto; }
+  .tabbar { gap: 3px; padding-left: 6px; padding-right: 6px; }
+  .tab { gap: 2px; font-size: 9.5px; }
+  .tab svg { width: 21px; height: 21px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

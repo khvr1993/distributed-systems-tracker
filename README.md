@@ -6,11 +6,9 @@ A mobile-first tracker for a 26-week distributed systems study plan (180 session
 
 - **Today** — the day's sessions, overdue catch-up list, current streak, overall progress ring, plus an expandable study reference link, 1-tap Socratic AI prompt, note, and 1–5 confidence rating on every session.
 - **Plan** — all 26 weeks grouped by phase; check off any session early or late.
-- **Progress** — completion %, current/best streak, 26×7 heatmap, per-phase breakdown.
-- **Schedule** — configurable start date (defaults to next Monday) plus weekday/weekend reminder times. Moving the start date never loses checkmarks.
-- **Reminders** — export a calendar file with native alerts, or enable the optional ntfy push workflow.
-- **Learning log** — notes and confidence ratings feed a weak-topics list for the Sunday teach-back.
-- **Backup** — export progress as JSON (notes and confidence included), or import a backup to merge/update or replace progress; replace and reset keep a snapshot you can undo.
+- **Progress** — overall completion, current/best streak, 26×7 heatmap, and the 26-week roadmap by phase.
+- **Setup** — schedule, calendar reminders, JSON backup/import (notes and confidence included), Socratic AI tutor setup, install, and reset. Replace and reset keep a snapshot you can undo.
+- **Learning log** — notes and confidence ratings feed a weak-topics list on Today, including the Sunday teach-back.
 - **Socratic AI Tutor** — each session includes a `socratic-tutor` prompt; install the skill from [janestreet/agent_skills](https://github.com/janestreet/agent_skills/tree/master/socratic-tutor). In Command Code, invoke `/socratic-tutor` and paste the session prompt after it; the prompt also tells other agents how to fall back if the skill is unavailable.
 
 The plan covers: networking (IP/OSI/DNS/TCP/UDP, REST/GraphQL/gRPC, WebSockets/SSE, proxies, load balancing), time and ordering, CAP/PACELC/availability/scalability, consensus (Paxos/Raft), storage (block/file/object, B-Tree/LSM), replication, partitioning/sharding/federation, SQL/NoSQL/normalization/transactions, queues/pub-sub/Kafka/EDA/event sourcing/CQRS, scheduling, coordination, failure patterns, idempotency, performance/caching, rate limiting/API gateway, observability, containers/deployment, disaster recovery, security (OAuth/OIDC/SSO/TLS/mTLS), geohashing/quadtrees, plus capstones and case studies (URL Shortener, Distributed KV + Queue, Notification System, WhatsApp, Twitter, Netflix, and Uber).
@@ -30,7 +28,7 @@ Or any static server, e.g. `python3 -m http.server 4173`.
 2. Repo **Settings → Pages → Build and deployment**: source **Deploy from a branch**, branch **main**, folder **/ (root)**, save.
 3. Open `https://<your-user>.github.io/<repo>/` on your phone.
 4. Install it: iPhone Safari **Share → Add to Home Screen**; Android menu **Install app**.
-5. Open **Progress → Schedule** and pick your start date (a Monday works best).
+5. Open **Setup → Schedule** and pick your start date (a Monday works best).
 
 No build or CI is required for hosting. Everything is static.
 
@@ -39,7 +37,7 @@ No build or CI is required for hosting. Everything is static.
 - Open the app and check off today's session from **Today**, or browse **Plan** to work ahead.
 - Progress saves automatically in `localStorage` on that device.
 - Open a session's study guide to add a one-line note and rate confidence 1–5; low-confidence topics surface in the weak-topics list before the Sunday teach-back.
-- Use **Progress → Backup** to move data between phones/browsers.
+- Use **Setup → Backup** to move data between phones/browsers.
 - Each session includes the 60-minute daily ritual: learn 25 min, build 20 min, quiz 10 min, note 5 min. Friday adds a postmortem; Sunday is the 60-minute teach-back.
 
 ## Reminders
@@ -48,7 +46,7 @@ A static site cannot schedule OS notifications while it is closed — that requi
 
 ### Option A — Calendar alerts (recommended)
 
-1. Open **Progress → Reminders**.
+1. Open **Setup → Reminders**.
 2. Tap **Export remaining** (or **Export full plan**).
 3. Import the downloaded `.ics` file into Apple/Google Calendar.
 
