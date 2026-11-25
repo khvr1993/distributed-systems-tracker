@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { PHASES, WEEKS, DAY_ORDER, getItems } from '../js/plan-data.js';
+import { SESSION_REFS } from '../js/study-guides.js';
 import { addDays, daysBetween } from '../js/util.js';
 import { generateICS } from '../js/ics.js';
 
@@ -70,4 +71,16 @@ for (const topic of [
   assert.ok(fullPlanText.includes(topic), `plan should include ${topic}`);
 }
 
-console.log(`Self-check passed: ${items.length} sessions · ${WEEKS.length} weeks · ${PHASES.length} phases · ICS ok.`);
+const itemIds = new Set(items.map((item) => item.id));
+for (const refId of Object.keys(SESSION_REFS)) {
+  assert.ok(itemIds.has(refId), `SESSION_REFS key ${refId} must match a plan item`);
+}
+
+for (const item of items) {
+  assert.ok(item.refTitle && item.refTitle.length > 3, `${item.id} missing refTitle`);
+  assert.ok(/^https:\/\//.test(item.refUrl), `${item.id} invalid refUrl: ${item.refUrl}`);
+  assert.ok(item.refSummary && item.refSummary.length > 20, `${item.id} missing refSummary`);
+  assert.ok(item.prompt && item.prompt.includes('Socratic'), `${item.id} missing Socratic prompt`);
+}
+
+console.log(`Self-check passed: ${items.length} sessions · ${WEEKS.length} weeks · ${PHASES.length} phases · study guides & ICS ok.`);

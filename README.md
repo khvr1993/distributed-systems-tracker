@@ -4,7 +4,7 @@ A mobile-first tracker for a 26-week distributed systems study plan (180 session
 
 ## What's inside
 
-- **Today** — the day's sessions, overdue catch-up list, current streak, overall progress ring.
+- **Today** — the day's sessions, overdue catch-up list, current streak, overall progress ring, plus an expandable study reference link and 1-tap Socratic AI prompt on every session.
 - **Plan** — all 26 weeks grouped by phase; check off any session early or late.
 - **Progress** — completion %, current/best streak, 26×7 heatmap, per-phase breakdown.
 - **Schedule** — configurable start date (defaults to next Monday) plus weekday/weekend reminder times. Moving the start date never loses checkmarks.

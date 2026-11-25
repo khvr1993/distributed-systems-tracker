@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ds-tracker-v2';
+const CACHE_NAME = 'ds-tracker-v3';
 
 const APP_SHELL = [
   './',
@@ -6,6 +6,7 @@ const APP_SHELL = [
   './css/styles.css',
   './js/app.js',
   './js/plan-data.js',
+  './js/study-guides.js',
   './js/store.js',
   './js/util.js',
   './js/ics.js',

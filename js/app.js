@@ -50,6 +50,7 @@ const state = {
 const ui = {
   openWeeks: new Set(),
   openPhases: new Set(),
+  openGuides: new Set(),
   overdueOpen: false,
   planSeen: false,
 };
@@ -183,6 +184,8 @@ function chipHTML(type) {
 function taskCard(item, options = {}) {
   const done = isDone(item.id);
   const date = dateFor(item);
+  const guideKey = `${options.scope || 'main'}:${item.id}`;
+  const guideOpen = ui.openGuides.has(guideKey);
   const meta = options.compact
     ? DURATION_TEXT[item.type]
     : `Week ${item.week} · ${escapeHTML(item.weekTitle)} · ${DURATION_TEXT[item.type]}`;
@@ -197,6 +200,24 @@ function taskCard(item, options = {}) {
       </div>
       <p class="task-text">${escapeHTML(item.text)}</p>
       <p class="task-meta">${meta}</p>
+      <details class="task-guide" data-guide="${escapeHTML(guideKey)}" ${guideOpen ? 'open' : ''}>
+        <summary>
+          <span>Study guide &amp; AI prompt</span>
+          ${CHEV_HTML}
+        </summary>
+        <div class="guide-body">
+          <p class="guide-summary">${escapeHTML(item.refSummary)}</p>
+          <a class="guide-link" href="${escapeHTML(item.refUrl)}" target="_blank" rel="noopener noreferrer">
+            <span>Reference: ${escapeHTML(item.refTitle)}</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+          <div class="guide-prompt-head">
+            <span class="eyebrow" style="margin:0">Socratic AI prompt</span>
+            <button class="btn guide-copy" type="button" data-copy-prompt="${item.id}">Copy prompt</button>
+          </div>
+          <pre class="guide-prompt">${escapeHTML(item.prompt)}</pre>
+        </div>
+      </details>
     </div>
   </article>`;
 }
@@ -272,7 +293,7 @@ function renderToday() {
       ? 'Consolidate your notes, finish any loose ends, and write down what changed in how you think.'
       : 'Nothing is scheduled today. Use it to review notes or finish an overdue lab.'}</div>`;
   } else {
-    html += todays.map((entry) => taskCard(entry.item)).join('');
+    html += todays.map((entry) => taskCard(entry.item, { scope: 'today' })).join('');
   }
 
   if (next) {
@@ -292,7 +313,7 @@ function renderToday() {
           <span class="badge">${overdue.length}</span>
           ${CHEV_HTML}
         </summary>
-        <div class="overdue-body">${overdue.map((entry) => taskCard(entry.item, { showDate: true })).join('')}</div>
+        <div class="overdue-body">${overdue.map((entry) => taskCard(entry.item, { showDate: true, scope: 'overdue' })).join('')}</div>
       </details>`;
   }
 
@@ -339,7 +360,7 @@ function renderPlan() {
             ${CHEV_HTML}
           </summary>
           <div class="week-items">
-            ${list.map((item) => taskCard(item, { showDate: true, compact: true })).join('')}
+            ${list.map((item) => taskCard(item, { showDate: true, compact: true, scope: 'plan' })).join('')}
           </div>
         </details>`;
     }).join('');
@@ -498,6 +519,13 @@ function captureOpenStates() {
   }
   const overdueEl = document.querySelector('details[data-overdue]');
   if (overdueEl) ui.overdueOpen = overdueEl.open;
+  const guideEls = document.querySelectorAll('details[data-guide]');
+  if (guideEls.length) {
+    for (const el of guideEls) {
+      if (el.open) ui.openGuides.add(el.dataset.guide);
+      else ui.openGuides.delete(el.dataset.guide);
+    }
+  }
 }
 
 function render(options = {}) {
@@ -683,12 +711,41 @@ function handleAction(action) {
   }
 }
 
+async function copyPrompt(id) {
+  const item = ITEM_BY_ID.get(id);
+  if (!item?.prompt) return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(item.prompt);
+    } else {
+      throw new Error('Clipboard API unavailable');
+    }
+    showToast('Socratic prompt copied');
+  } catch {
+    const area = document.createElement('textarea');
+    area.value = item.prompt;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand('copy');
+    area.remove();
+    showToast(ok ? 'Socratic prompt copied' : 'Select and copy the prompt manually');
+  }
+}
+
 /* ---------- Events ---------- */
 
 view.addEventListener('click', (event) => {
   const check = event.target.closest('[data-check]');
   if (check) {
     toggleItem(check.dataset.check);
+    return;
+  }
+  const copyBtn = event.target.closest('[data-copy-prompt]');
+  if (copyBtn) {
+    copyPrompt(copyBtn.dataset.copyPrompt);
     return;
   }
   const action = event.target.closest('[data-action]');

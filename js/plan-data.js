@@ -1,3 +1,5 @@
+import { buildStudyGuide } from './study-guides.js';
+
 export const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 export const DAY_LABELS = {
@@ -401,7 +403,7 @@ export function getItems() {
       const entry = days[day];
       if (!entry) continue;
       const text = typeof entry === 'string' ? entry : entry.text;
-      items.push({
+      const item = {
         id: `w${week.week}-${day}`,
         week: week.week,
         weekTitle: week.title,
@@ -411,7 +413,8 @@ export function getItems() {
         dayOffset: DAY_OFFSET[day],
         type: typeFor(day, text),
         text,
-      });
+      };
+      items.push({ ...item, ...buildStudyGuide(item) });
     }
   }
   return items;

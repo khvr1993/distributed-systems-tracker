@@ -78,6 +78,8 @@ export function generateICS(entries, settings) {
     const description = [
       `Week ${item.week} — ${item.weekTitle}`,
       item.text,
+      item.refSummary ? `Takeaway: ${item.refSummary}` : '',
+      item.refUrl ? `Reference: ${item.refTitle} — ${item.refUrl}` : '',
       `Estimated time: ${item.type === 'build' ? '2–3 hours' : item.type === 'review' ? '45 minutes' : '90 minutes'}`,
       settings.appUrl ? `Open tracker: ${settings.appUrl}` : '',
     ].filter(Boolean).join('\n');
